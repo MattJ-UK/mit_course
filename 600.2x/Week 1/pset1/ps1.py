@@ -55,13 +55,59 @@ def greedy_cow_transport(cows,limit=10):
     trips
     """
     # TODO: Your code here
+    def sortCows(cows):
+        """
+        Helper function - splits the dict into two lists and sorts them, ascending
+        :param cows: A dict containing cows and their weights
+        :return: keys, vals -> Sorted lists 
+        """
+        keys = list(cows.keys())
+        vals = list(cows.values())
+        swaps = 1
+        while swaps > 0:
+            swaps = 0
+            for i in range(len(vals)-1):
+                #print('Test ' + str(vals[i]) + ' > ' + str(vals[i+1]))
+                if vals[i] > vals[i+1]:
+                    #print('swap')
+                    vals[i], vals[i+1] = vals[i+1], vals[i]
+                    keys[i], keys[i+1] = keys[i+1], keys[i]
+                    swaps +=1
+                    #print('swaps: ' + str(swaps))
+                    #print(keys)
+                    #print(vals)
+        return keys, vals
+
+    keys, vals = sortCows(cows)
+
+    all_trips = []
 
 
+    while len(keys) > 0:
+        #print('keys left: ' + str(len(keys)))
+        remaining = limit
+        unused_keys = []
+        unused_vals = []
+        current_trip = []
+        for i in range(len(vals)):
+            cow = keys.pop()
+            cow_weight = vals.pop()
+            if cow_weight > remaining:
+                #print('Not loading ' + cow + ': weight is ' + str(cow_weight) + '. Remaining: ' + str(remaining))
+                unused_keys = [cow] + unused_keys
+                unused_vals = [cow_weight] + unused_vals
+                #print('unused cows: ' + str(unused_keys))
+            else:
+                current_trip.append(cow)
+                remaining -= cow_weight
+                #print('Loading ' + cow + ': weight is ' + str(cow_weight) + '. Remaining: ' + str(remaining))
+        #print('Appending trip ' + str(current_trip) +'. Remaining: ' + str(remaining))
+        all_trips.append(current_trip)
+        keys = keys + unused_keys
+        vals = vals + unused_vals
 
+    return all_trips
 
-    current_weight = 0
-
-    for c in input:
 
 
 
@@ -88,8 +134,56 @@ def brute_force_cow_transport(cows,limit=10):
     transported on a particular trip and the overall list containing all the
     trips
     """
+
+
     # TODO: Your code here
-    pass
+    def valid_trip(trip, cows, limit):
+        """
+        Determines whether a trip is valid
+        :param trip: single trip as list
+        :param limit: max weight allowed
+        :param cows: dict of cows & weights
+        :return: True / False
+        """
+        valid = True
+        remaining = limit
+        for cow in trip:
+            remaining -= cows[cow]
+            if remaining < 0:
+                valid = False
+                break
+        return valid
+
+    smallest_trips = 0
+    current_best = []
+
+    for elt in get_partitions(cows):
+        #print('testing list:' + str(elt))
+        trip_count = 0
+        all_valid = True
+        #if len(elt) > smallest_trips and smallest_trips != 0:
+        for l in elt:
+            #print('testing trip: ' + str(l))
+            if valid_trip(l, cows, limit):
+                trip_count += 1
+                #print('Valid. Trip count: ' + str(trip_count) )
+            else:
+                all_valid = False
+                #print('************INVALID************')
+                break
+
+        if all_valid and (trip_count < smallest_trips or smallest_trips == 0):
+            smallest_trips = trip_count
+            current_best = elt
+
+        #print('Current best: ' + str(current_best) + '. Trip count: ' + str(smallest_trips))
+
+    return current_best
+
+
+
+
+
 
         
 # Problem 3
@@ -106,8 +200,22 @@ def compare_cow_transport_algorithms():
     Returns:
     Does not return anything.
     """
-    # TODO: Your code here
-    pass
+    cows = load_cows("ps1_cow_data.txt")
+    limit = 10
+    print(cows)
+    import time
+
+    greedy_start = time.time()
+    print(greedy_cow_transport(cows, limit))
+    greedy_end = time.time()
+
+    bruteforce_start = time.time()
+    print(brute_force_cow_transport(cows, limit))
+    bruteforce_end = time.time()
+
+    print('greedy took: ' + str(greedy_end-greedy_start))
+    print('bruteforce took: ' + str(bruteforce_end - bruteforce_start))
+
 
 
 """
@@ -116,11 +224,6 @@ Do not submit this along with any of your answers. Uncomment the last two
 lines to print the result of your problem.
 """
 
-cows = load_cows("ps1_cow_data.txt")
-limit=100
-print(cows)
-
-print(greedy_cow_transport(cows, limit))
-print(brute_force_cow_transport(cows, limit))
+compare_cow_transport_algorithms()
 
 
