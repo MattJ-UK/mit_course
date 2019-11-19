@@ -54,7 +54,6 @@ def greedy_cow_transport(cows,limit=10):
     transported on a particular trip and the overall list containing all the
     trips
     """
-    # TODO: Your code here
     def sortCows(cows):
         """
         Helper function - splits the dict into two lists and sorts them, ascending
@@ -136,7 +135,6 @@ def brute_force_cow_transport(cows,limit=10):
     """
 
 
-    # TODO: Your code here
     def valid_trip(trip, cows, limit):
         """
         Determines whether a trip is valid

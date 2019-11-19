@@ -5,7 +5,7 @@ import random
 
 import ps2_visualize
 #import pylab
-from matplotlib import pylab
+#from matplotlib import pylab
 
 ##################
 ## Comment/uncomment the relevant lines, depending on which version of Python you have
@@ -288,18 +288,24 @@ def runSimulation(num_robots, speed, width, height, min_coverage, num_trials,
     robot_type: class of robot to be instantiated (e.g. StandardRobot or
                 RandomWalkRobot)
     """
-    for trial in num_trials:
+    time_steps_list = []
+    for trial in range(num_trials):
         room = RectangularRoom(width,height)
         bot_list = []
         for i in range(num_robots):
-            if robot_type == 'StandardRobot':
-                bot_list.append(StandardRobot(room,speed))
-            elif robot_type == 'RandomWalkRobot':
-                bot_list.append(RandomWalkRobot(room,speed))
+            bot_list.append(robot_type(room,speed))
 
+        time_steps = 0
         while min_coverage > room.getNumCleanedTiles() / room.getNumTiles():
             for bot in bot_list:
+                time_steps += 1
                 bot.updatePositionAndClean()
+
+        time_steps_list.append(time_steps)
+        average = sum(time_steps_list) / len(time_steps_list) / num_robots
+
+        return average
+
 
 
 
