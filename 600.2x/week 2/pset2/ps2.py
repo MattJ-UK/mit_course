@@ -4,7 +4,8 @@ import math
 import random
 
 import ps2_visualize
-import pylab
+#import pylab
+from matplotlib import pylab
 
 ##################
 ## Comment/uncomment the relevant lines, depending on which version of Python you have
@@ -15,7 +16,7 @@ import pylab
 # If you get a "Bad magic number" ImportError, you are not using Python 3.5 
 
 # For Python 3.6:
-from ps2_verify_movement36 import testRobotMovement
+#from ps2_verify_movement36 import testRobotMovement
 # If you get a "Bad magic number" ImportError, you are not using Python 3.6
 
 
@@ -38,6 +39,21 @@ class Position(object):
         return self.y
     
     def getNewPosition(self, angle, speed):
+        """
+        Computes and returns the new Position after a single clock-tick has
+        passed, with this object as the current position, and with the
+        specified angle and speed.
+
+        Does NOT test whether the returned position fits inside the room.
+
+        angle: number representing angle in degrees, 0 <= angle < 360
+        speed: positive float representing speed
+
+        Returns: a Position object representing the new position.
+        """
+        old_x, old_y = self.getX(), self.getY()
+        angle = float(angle)
+        # Compute the change in position
         delta_y = speed * math.cos(math.radians(angle))
         delta_x = speed * math.sin(math.radians(angle))
         # Add that to the existing position
@@ -50,6 +66,17 @@ class Position(object):
 
 
 # === Problem 1
+class RoomTile(Position):
+    def __init__(self, x, y, clean=False):
+        Position.__init__(self, x,y)
+        self.clean = clean
+
+    def __eq__(self, other):
+        if self.x // 1 == other.x // 1 and self.y // 1 == other.y // 1:
+            return True
+        else:
+            return False
+
 class RectangularRoom(object):
     """
     A RectangularRoom represents a rectangular region containing clean or dirty
@@ -69,11 +96,11 @@ class RectangularRoom(object):
         """
         self.width = width
         self.height = height
-        self.tiles = {}
+        self.tiles = []
         for w in range(self.width):
             for h in range(self.height):
-                newPos = Position(w,h)
-                self.tiles[newPos] = False
+                newPos = RoomTile(w,h)
+                self.tiles.append(newPos)
 
     def cleanTileAtPosition(self, pos):
         """
@@ -83,7 +110,9 @@ class RectangularRoom(object):
 
         pos: a Position
         """
-        self.tiles[pos]= True
+        for t in self.tiles:
+            if t == pos:
+                t.clean = True
 
     def isTileCleaned(self, m, n):
         """
@@ -95,10 +124,10 @@ class RectangularRoom(object):
         n: an integer
         returns: True if (m, n) is cleaned, False otherwise
         """
-        clean = False
-        for pos in self.tiles:
-            if str(pos) == "(%0.2f, %0.2f)" % (m, n):
-                clean = self.tiles[pos]
+        checkPos = RoomTile(m,n)
+        for t in self.tiles:
+            if t == checkPos:
+                return t.clean
 
         return clean
 
@@ -117,8 +146,8 @@ class RectangularRoom(object):
         returns: an integer
         """
         cleaned_num = 0
-        for i in self.tiles.values():
-            if i:
+        for t in self.tiles:
+            if t.clean:
                 cleaned_num += 1
 
         return cleaned_num
@@ -138,26 +167,8 @@ class RectangularRoom(object):
         pos: a Position object.
         returns: True if pos is in the room, False otherwise.
         """
-        present = False
-        for k in self.tiles.keys():
-            if str(pos) == str(k):
-                present = True
-        return present
-        """
-        Computes and returns the new Position after a single clock-tick has
-        passed, with this object as the current position, and with the
-        specified angle and speed.
+        return pos in self.tiles
 
-        Does NOT test whether the returned position fits inside the room.
-
-        angle: number representing angle in degrees, 0 <= angle < 360
-        speed: positive float representing speed
-
-        Returns: a Position object representing the new position.
-        """
-        old_x, old_y = self.getX(), self.getY()
-        angle = float(angle)
-        # Compute the change in position
 
 
 # === Problem 2
@@ -180,7 +191,11 @@ class Robot(object):
         room:  a RectangularRoom object.
         speed: a float (speed > 0)
         """
-        raise NotImplementedError
+        self.room = room
+        self.speed = speed
+        self.location = room.getRandomPosition()
+        self.angle = random.choice(range(360))
+        room.cleanTileAtPosition(self.location)
 
     def getRobotPosition(self):
         """
@@ -188,7 +203,7 @@ class Robot(object):
 
         returns: a Position object giving the robot's position.
         """
-        raise NotImplementedError
+        return self.location
     
     def getRobotDirection(self):
         """
@@ -197,7 +212,7 @@ class Robot(object):
         returns: an integer d giving the direction of the robot as an angle in
         degrees, 0 <= d < 360.
         """
-        raise NotImplementedError
+        return self.angle
 
     def setRobotPosition(self, position):
         """
@@ -205,7 +220,7 @@ class Robot(object):
 
         position: a Position object.
         """
-        raise NotImplementedError
+        self.location = position
 
     def setRobotDirection(self, direction):
         """
@@ -213,7 +228,7 @@ class Robot(object):
 
         direction: integer representing an angle in degrees
         """
-        raise NotImplementedError
+        self.angle = direction
 
     def updatePositionAndClean(self):
         """
@@ -241,11 +256,17 @@ class StandardRobot(Robot):
         Move the robot to a new position and mark the tile it is on as having
         been cleaned.
         """
-        raise NotImplementedError
+        newPos = self.location.getNewPosition(self.angle ,self.speed)
+
+        if self.room.isPositionInRoom(newPos):
+            self.location = newPos
+            self.room.cleanTileAtPosition(self.location)
+        else:
+            self.angle = random.choice(range(360))
 
 
 # Uncomment this line to see your implementation of StandardRobot in action!
-##testRobotMovement(StandardRobot, RectangularRoom)
+#testRobotMovement(StandardRobot, RectangularRoom)
 
 
 # === Problem 4
@@ -267,10 +288,23 @@ def runSimulation(num_robots, speed, width, height, min_coverage, num_trials,
     robot_type: class of robot to be instantiated (e.g. StandardRobot or
                 RandomWalkRobot)
     """
-    raise NotImplementedError
+    for trial in num_trials:
+        room = RectangularRoom(width,height)
+        bot_list = []
+        for i in range(num_robots):
+            if robot_type == 'StandardRobot':
+                bot_list.append(StandardRobot(room,speed))
+            elif robot_type == 'RandomWalkRobot':
+                bot_list.append(RandomWalkRobot(room,speed))
+
+        while min_coverage > room.getNumCleanedTiles() / room.getNumTiles():
+            for bot in bot_list:
+                bot.updatePositionAndClean()
+
+
 
 # Uncomment this line to see how much your simulation takes on average
-##print(runSimulation(1, 1.0, 10, 10, 0.75, 30, StandardRobot))
+print(runSimulation(1, 1.0, 10, 10, 0.75, 30, StandardRobot))
 
 
 # === Problem 5
@@ -286,7 +320,14 @@ class RandomWalkRobot(Robot):
         Move the robot to a new position and mark the tile it is on as having
         been cleaned.
         """
-        raise NotImplementedError
+        newPos = self.location.getNewPosition(self.angle, self.speed)
+
+        if self.room.isPositionInRoom(newPos):
+            self.location = newPos
+            self.room.cleanTileAtPosition(self.location)
+            self.angle = random.choice(range(360))
+        else:
+            self.angle = random.choice(range(360))
 
 
 def showPlot1(title, x_label, y_label):
