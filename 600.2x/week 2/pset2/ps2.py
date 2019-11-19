@@ -5,7 +5,7 @@ import random
 
 import ps2_visualize
 #import pylab
-#from matplotlib import pylab
+from matplotlib import pylab
 
 ##################
 ## Comment/uncomment the relevant lines, depending on which version of Python you have
@@ -310,7 +310,7 @@ def runSimulation(num_robots, speed, width, height, min_coverage, num_trials,
 
 
 # Uncomment this line to see how much your simulation takes on average
-print(runSimulation(1, 1.0, 10, 10, 0.75, 30, StandardRobot))
+#print(runSimulation(1, 1.0, 10, 10, 0.75, 30, StandardRobot))
 
 
 # === Problem 5
@@ -386,12 +386,13 @@ def showPlot2(title, x_label, y_label):
 # 1) Write a function call to showPlot1 that generates an appropriately-labeled
 #     plot.
 #
-#       (... your call here ...)
+#showPlot1('Number of robots vs cleaning time, Standard vs Random robots', 'robots', 'time taken' )
 #
+
 
 #
 # 2) Write a function call to showPlot2 that generates an appropriately-labeled
 #     plot.
 #
-#       (... your call here ...)
+#showPlot2('Time taken to clean 80% of rooms fo varying shapes','aspect ratio', 'time steps' )
 #
