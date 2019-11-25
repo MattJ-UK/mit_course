@@ -28,7 +28,6 @@ def runTrial(picks, options):
     for i in range(1,len(choices)):
         if choices[i] != comparison:
             result = False
-
     return result
 
 
@@ -43,12 +42,15 @@ def noReplacementSimulation(numTrials):
     '''
     # Your code here
 
-
-    sampleMeans = []
-    meanOfMeans = []
-
+    count_matched = 0
     for t in range(numTrials):
         options = ['r', 'r', 'r', 'g', 'g', 'g']
-        count = 0
-        int(runTrial(3,options.copy()))
+        count_matched += int(runTrial(3,options.copy()))
+
+    result = float(count_matched) / float(numTrials)
+
+    return result
+
+
+print(noReplacementSimulation(10000))
 

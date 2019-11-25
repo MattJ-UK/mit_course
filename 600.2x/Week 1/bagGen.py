@@ -7,25 +7,21 @@ def yieldAllCombos(items):
       a list of which item(s) are in each bag.
     """
     # generate all combinations of N items
-    def powerSet(items):
-        N = len(items)
-        # enumerate the 2**N possible combinations
-        for i in range(2 ** N):
-            combo = []
-            for j in range(N):
-                # test bit jth of integer i
-                if (i >> j) % 2 == 1:
-                    combo.append(items[j])
-            yield combo
 
-    x = powerSet(items)
-
-    bag_1 = x.__next__()
-    bag_2 = items - bag_1
-
-    yield (bag_1,bag_2)
+    N = len(items)
+    # enumerate the 3**N possible combinations
+    for i in range(3 ** N):
+        bag_1 = []
+        bag_2 = []
+        for j in range(N):
+            # test bit jth of integer i
+            if (i >> j) % 3 == 1:
+                bag_1.append(items[j])
+            elif (i >> j) % 3 == 0:
+                bag_2.append(items[j])
+        yield (bag_1, bag_2)
 
 
 test_list = ['apple', 'orange', 'banana']
 
-yieldAllCombos(test_list)
+x = yieldAllCombos(test_list)
