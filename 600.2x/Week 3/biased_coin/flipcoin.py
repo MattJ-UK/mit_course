@@ -35,7 +35,7 @@ def getMeanAndStd(X):
 ## Do not use numpy/pylab   #
 #############################
 meanOfMeans, stdOfMeans = [], []
-sampleSizes = range(10, 500, 50)
+sampleSizes = range(1, 500, 25)
 
 def clt():
     for sampleSize in sampleSizes:
