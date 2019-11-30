@@ -377,7 +377,8 @@ class TreatedPatient(Patient):
         maxPop: The  maximum virus population for this patient (an integer)
         """
 
-        # TODO
+        Patient.__init__(self,viruses,maxPop)
+        self.drugs = []
 
 
     def addPrescription(self, newDrug):
@@ -391,8 +392,8 @@ class TreatedPatient(Patient):
         postcondition: The list of drugs being administered to a patient is updated
         """
 
-        # TODO
-
+        if newDrug not in self.drugs:
+            self.drugs.append(newDrug)
 
     def getPrescriptions(self):
         """
@@ -402,7 +403,7 @@ class TreatedPatient(Patient):
         patient.
         """
 
-        # TODO
+        return self.drugs
 
 
     def getResistPop(self, drugResist):
@@ -416,8 +417,16 @@ class TreatedPatient(Patient):
         returns: The population of viruses (an integer) with resistances to all
         drugs in the drugResist list.
         """
+        all_resist_count = 0
+        for v in viruses:
+            all_resist = True
+            for d in self.drugs:
+                all_resist = all_resist and v.isResistantTo(d)
+            all_resist_count += all_resist
 
-        # TODO
+        return all_resist_count
+
+
 
 
     def update(self):
@@ -440,8 +449,24 @@ class TreatedPatient(Patient):
         returns: The total virus population at the end of the update (an
         integer)
         """
+        self.removals_list = []
+        for v in self.viruses:
+            if v.doesClear():
+                self.removals_list.append(v)
 
-        # TODO
+        self.viruses = [x for x in self.viruses if x not in self.removals_list]
+
+        self.popDensity = self.getTotalPop() / self.getMaxPop()
+
+        self.newViruses = []
+        for v in self.viruses:
+            try:
+                self.newViruses.append(v.reproduce(self.popDensity, self.drugs))
+            except(NoChildException):
+                continue
+        self.viruses += self.newViruses
+
+        return self.getTotalPop()
 
 
 
@@ -472,3 +497,53 @@ def simulationWithDrug(numViruses, maxPop, maxBirthProb, clearProb, resistances,
     """
 
     # TODO
+    trialResultsVuln = []
+    trialResultsResist = []
+    for t in range(numTrials):
+        viruses = []
+        for i in range(numViruses):
+            viruses.append(SimpleVirus(maxBirthProb,clearProb))
+
+        testPatient = TreatedPatient(viruses,maxPop)
+
+        pops = []
+        pops_resist = []
+
+        # Untreated for 150
+        for i in range(150):
+            pops.append(TreatedPatient.update())
+            pops_resist.append(TreatedPatient.getResistPop())
+
+        # Add prescription
+        testPatient.addPrescription('guttagonol')
+
+        # Treated for 150
+        for i in range(150):
+            pops.append(TreatedPatient.update())
+            pops_resist.append(TreatedPatient.getResistPop())
+
+
+        trialResultsVuln.append(pops)
+        trialResultsResist.append(pops_resist)
+
+    timesteps = range(300)
+    averagesVuln = []
+    averagesResist = []
+
+    for i in timesteps:
+        sumVuln = 0
+        sumResist = 0
+        for r in trialResultsVuln:
+            sumVuln += r[i]
+        for r in trialResultsResist:
+            sumResist += r[i]
+
+        averagesVuln.append(float(sumVuln)/float(numTrials))
+        averagesResist.append(float(sumResist)/float(numTrials))
+
+    pylab.plot(averages, label="SimpleVirus")
+    pylab.title("SimpleVirus simulation")
+    pylab.xlabel("Time Steps")
+    pylab.ylabel("Average Virus Population")
+    pylab.legend(loc="best")
+    pylab.show()
