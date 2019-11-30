@@ -293,7 +293,7 @@ def runSimulation(num_robots, speed, width, height, min_coverage, num_trials,
         room = RectangularRoom(width,height)
         bot_list = []
         for i in range(num_robots):
-            bot_list.append(robot_type(room,speed))
+            bot_list.append(robot_type(room, speed))
 
         time_steps = 0
         while min_coverage > room.getNumCleanedTiles() / room.getNumTiles():

@@ -11,6 +11,7 @@ def pickBall(options):
 
     return choice
 
+
 def runTrial(picks, options):
     """
     Returns True if all balls picked are the same colour

@@ -223,7 +223,7 @@ def simulationWithoutDrug(numViruses, maxPop, maxBirthProb, clearProb,
     pylab.legend(loc="best")
     pylab.show()
 
-simulationWithoutDrug(100,1000,0.1,0.05,100)
+#simulationWithoutDrug(100,1000,0.1,0.05,100)
 
 #
 # PROBLEM 3
@@ -234,6 +234,7 @@ class ResistantVirus(SimpleVirus):
     """   
 
     def __init__(self, maxBirthProb, clearProb, resistances, mutProb):
+        SimpleVirus.__init__(maxBirthProb,clearProb)
         """
         Initialize a ResistantVirus instance, saves all parameters as attributes
         of the instance.
@@ -250,21 +251,21 @@ class ResistantVirus(SimpleVirus):
         mutProb: Mutation probability for this virus particle (a float). This is
         the probability of the offspring acquiring or losing resistance to a drug.
         """
-
-        # TODO
+        self.resistances = resistances
+        self.mutProb = mutProb
 
 
     def getResistances(self):
         """
         Returns the resistances for this virus.
         """
-        # TODO
+        return self.resistances
 
     def getMutProb(self):
         """
         Returns the mutation probability for this virus.
         """
-        # TODO
+        return self.mutProb
 
     def isResistantTo(self, drug):
         """
@@ -277,8 +278,8 @@ class ResistantVirus(SimpleVirus):
         returns: True if this virus instance is resistant to the drug, False
         otherwise.
         """
-        
-        # TODO
+
+        return self.resistances[drug]
 
 
     def reproduce(self, popDensity, activeDrugs):
@@ -325,8 +326,36 @@ class ResistantVirus(SimpleVirus):
         maxBirthProb and clearProb values as this virus. Raises a
         NoChildException if this virus particle does not reproduce.
         """
+        drugsCount = len(activeDrugs)
+        matchedResistCount = 0
 
-        # TODO
+        # Count matched resistances
+        for d in activeDrugs:
+            matchedResistCount += int(self.resistances[d])
+
+        if drugsCount == matchedResistCount:
+            self.reproProb = self.maxBirthProb * (1 - popDensity)
+
+            # Calculate offspring resistances
+            offspringResistances = {}
+            for r in self.resistances.keys():
+                if self.resistances[r]:
+                    if random.random() < 1-self.mutProb:
+                        offspringResistances[r] = True
+                    else:
+                        offspringResistances[r] = False
+
+
+
+
+            if random.random() <= self.reproProb:
+                return ResistantVirus(self.getMaxBirthProb(), self.getClearProb())
+            else:
+                raise NoChildException
+            #TODO
+
+
+
 
             
 
