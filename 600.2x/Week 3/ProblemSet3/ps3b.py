@@ -231,10 +231,10 @@ def simulationWithoutDrug(numViruses, maxPop, maxBirthProb, clearProb,
 class ResistantVirus(SimpleVirus):
     """
     Representation of a virus which can have drug resistance.
-    """   
+    """
 
     def __init__(self, maxBirthProb, clearProb, resistances, mutProb):
-        SimpleVirus.__init__(maxBirthProb,clearProb)
+        SimpleVirus.__init__(self, maxBirthProb, clearProb)
         """
         Initialize a ResistantVirus instance, saves all parameters as attributes
         of the instance.
@@ -271,7 +271,7 @@ class ResistantVirus(SimpleVirus):
         """
         Get the state of this virus particle's resistance to a drug. This method
         is called by getResistPop() in TreatedPatient to determine how many virus
-        particles have resistance to a drug.       
+        particles have resistance to a drug.
 
         drug: The drug (a string)
 
@@ -279,7 +279,10 @@ class ResistantVirus(SimpleVirus):
         otherwise.
         """
 
-        return self.resistances[drug]
+        try:
+            return self.resistances[drug]
+        except(KeyError):
+            return False
 
 
     def reproduce(self, popDensity, activeDrugs):
@@ -293,9 +296,9 @@ class ResistantVirus(SimpleVirus):
         then it will NOT reproduce.
 
         Hence, if the virus is resistant to all drugs
-        in activeDrugs, then the virus reproduces with probability:      
+        in activeDrugs, then the virus reproduces with probability:
 
-        self.maxBirthProb * (1 - popDensity).                       
+        self.maxBirthProb * (1 - popDensity).
 
         If this virus particle reproduces, then reproduce() creates and returns
         the instance of the offspring ResistantVirus (which has the same
@@ -305,7 +308,7 @@ class ResistantVirus(SimpleVirus):
         For each drug resistance trait of the virus (i.e. each key of
         self.resistances), the offspring has probability 1-mutProb of
         inheriting that resistance trait from the parent, and probability
-        mutProb of switching that resistance trait in the offspring.       
+        mutProb of switching that resistance trait in the offspring.
 
         For example, if a virus particle is resistant to guttagonol but not
         srinol, and self.mutProb is 0.1, then there is a 10% chance that
@@ -316,7 +319,7 @@ class ResistantVirus(SimpleVirus):
         srinol.
 
         popDensity: the population density (a float), defined as the current
-        virus population divided by the maximum population       
+        virus population divided by the maximum population
 
         activeDrugs: a list of the drug names acting on this virus particle
         (a list of strings).
@@ -326,33 +329,27 @@ class ResistantVirus(SimpleVirus):
         maxBirthProb and clearProb values as this virus. Raises a
         NoChildException if this virus particle does not reproduce.
         """
-        drugsCount = len(activeDrugs)
-        matchedResistCount = 0
-
-        # Count matched resistances
+        can_repro = True
         for d in activeDrugs:
-            matchedResistCount += int(self.resistances[d])
+            can_repro = can_repro and self.isResistantTo(d)
 
-        if drugsCount == matchedResistCount:
+        offspringResistances = {}
+        if can_repro:
             self.reproProb = self.maxBirthProb * (1 - popDensity)
-
-            # Calculate offspring resistances
-            offspringResistances = {}
-            for r in self.resistances.keys():
-                if self.resistances[r]:
-                    if random.random() < 1-self.mutProb:
-                        offspringResistances[r] = True
+            if random.random() < self.reproProb:
+                # Calculate offspring resistances
+                offspringResistances = {}
+                for r in self.resistances.keys():
+                    if random.random() < 1 - self.mutProb:
+                        offspringResistances[r] = self.resistances[r]
                     else:
-                        offspringResistances[r] = False
+                        offspringResistances[r] = not self.resistances[r]
 
-
-
-
-            if random.random() <= self.reproProb:
-                return ResistantVirus(self.getMaxBirthProb(), self.getClearProb())
+                return ResistantVirus(self.getMaxBirthProb(), self.getClearProb(),offspringResistances, self.getMutProb())
             else:
                 raise NoChildException
-            #TODO
+        else:
+            raise NoChildException
 
 
 
