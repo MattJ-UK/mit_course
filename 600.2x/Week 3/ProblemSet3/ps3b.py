@@ -389,7 +389,7 @@ class TreatedPatient(Patient):
         postcondition: The list of drugs being administered to a patient is updated
         """
 
-        if newDrug not in self.drugs:
+        if [newDrug] not in self.drugs:
             self.drugs.append(newDrug)
 
     def getPrescriptions(self):
@@ -415,11 +415,11 @@ class TreatedPatient(Patient):
         drugs in the drugResist list.
         """
         all_resist_count = 0
-        for v in viruses:
+        for v in p.viruses:
             all_resist = True
-            for d in self.drugs:
-                all_resist = all_resist and v.isResistantTo(d)
-            all_resist_count += all_resist
+            for e in drugResist:
+                all_resist = all_resist and v.isResistantTo(e)
+            all_resist_count += int(all_resist)
 
         return all_resist_count
 
