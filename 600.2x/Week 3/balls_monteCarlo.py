@@ -37,7 +37,7 @@ def noReplacementSimulation(numTrials):
     '''
     Runs numTrials trials of a Monte Carlo simulation
     of drawing 3 balls out of a bucket containing
-    3 red and 3 green balls. Balls are not replaced once
+    4 red and 4 green balls (updated for final). Balls are not replaced once
     drawn. Returns the a decimal - the fraction of times 3
     balls of the same color were drawn.
     '''
@@ -45,7 +45,7 @@ def noReplacementSimulation(numTrials):
 
     count_matched = 0
     for t in range(numTrials):
-        options = ['r', 'r', 'r', 'g', 'g', 'g']
+        options = ['r', 'r', 'r', 'r', 'g','g', 'g', 'g']
         count_matched += int(runTrial(3,options.copy()))
 
     result = float(count_matched) / float(numTrials)
@@ -54,5 +54,5 @@ def noReplacementSimulation(numTrials):
 
 
 
-print(noReplacementSimulation(10000))
+print(noReplacementSimulation(1000000))
 
